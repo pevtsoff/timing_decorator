@@ -22,7 +22,7 @@ def timeit_deep(f):
         print(f'Timings for function={f.__name__}')
         profiler = cProfile.Profile()
         profiler.enable()
-        profiler.runcall(f, *args, **kwargs)
+        result = profiler.runcall(f, *args, **kwargs)
         profiler.disable()
         output = StringIO()
         stats = pstats.Stats(
@@ -31,6 +31,8 @@ def timeit_deep(f):
         ).sort_stats('cumulative')
         stats.print_stats(10)
         print(output.getvalue())
+
+        return result
 
     return estimate_time
 
@@ -41,16 +43,20 @@ def timeit_deep(f):
 def look_for_df(df: pd.DataFrame):
     for i in range(num_iter):
         df.loc[10][10]
+    
+    return "func result"
 
 
 @timeit_deep
 def look_for_list(data):
     for i in range(num_iter):
         data[10][10]
+    
+    return "func result"
 
 
 print(f'dataframe access timetable')
-look_for_df(df)
+print(look_for_df(df))
 
 print(f'list access timetable')
-look_for_list(data)
+print(look_for_list(data))
