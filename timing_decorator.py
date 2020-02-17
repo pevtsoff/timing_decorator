@@ -14,32 +14,36 @@ df = pd.DataFrame.from_dict(data)
 num_iter = 10000
 
 
-def timeit_deep(f):
-    ''' This decorator will show all timings for
-        all the methods called within a function'''
-    @wraps(f)
-    def estimate_time(*args, **kwargs):
-        print(f'Timings for function={f.__name__}')
-        profiler = cProfile.Profile()
-        profiler.enable()
-        result = profiler.runcall(f, *args, **kwargs)
-        profiler.disable()
-        output = StringIO()
-        stats = pstats.Stats(
-            profiler,
-            stream=output
-        ).sort_stats('cumulative')
-        stats.print_stats(10)
-        print(output.getvalue())
+def profile_func(stats_limit=10):
+    def timeit_deep_wrapper(f):
+        ''' This decorator will show all timings for
+            all the methods called within a function'''
 
-        return result
+        @wraps(f)
+        def estimate_time(*args, **kwargs):
+            print(f'Timings for function={f.__name__}')
+            profiler = cProfile.Profile()
+            profiler.enable()
+            result = profiler.runcall(f, *args, **kwargs)
+            profiler.disable()
+            output = StringIO()
+            stats = pstats.Stats(
+                profiler,
+                stream=output
+            ).sort_stats('cumulative')
+            stats.print_stats(stats_limit)
+            print(output.getvalue())
 
-    return estimate_time
+            return result
+
+        return estimate_time
+
+    return timeit_deep_wrapper
 
 
 # Example of usage
 
-@timeit_deep
+@profile_func()
 def look_for_df(df: pd.DataFrame):
     for i in range(num_iter):
         df.loc[10][10]
@@ -47,7 +51,7 @@ def look_for_df(df: pd.DataFrame):
     return "func result"
 
 
-@timeit_deep
+@profile_func()
 def look_for_list(data):
     for i in range(num_iter):
         data[10][10]
